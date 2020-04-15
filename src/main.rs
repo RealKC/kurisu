@@ -1,7 +1,9 @@
 mod chunk;
+mod opcode;
 mod value;
 
-use chunk::{Chunk, OpCode};
+use chunk::Chunk;
+use opcode::OpCode;
 
 fn main() {
     let mut chunk = Chunk::new();
