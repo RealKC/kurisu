@@ -4,7 +4,8 @@ use std::fmt;
 pub enum OpCode {
     Unknown = 0,
     Return = 1,
-    Constant,
+    Constant = 2,
+    ConstantLong = 3,
 }
 
 impl From<u8> for OpCode {
@@ -12,6 +13,7 @@ impl From<u8> for OpCode {
         match orig {
             0x1 => Self::Return,
             0x2 => Self::Constant,
+            0x3 => Self::ConstantLong,
             _ => Self::Unknown,
         }
     }

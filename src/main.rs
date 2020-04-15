@@ -7,11 +7,10 @@ use opcode::OpCode;
 
 fn main() {
     let mut chunk = Chunk::new();
-    let idx = chunk.add_constant(1.5);
-    chunk.append(OpCode::Constant as u8, 0);
-    chunk.append(idx, 0);
 
-    chunk.append(OpCode::Return as u8, 123);
+    for i in 0..257 {
+        chunk.append_constant(1.5 + i as f64, i);
+    }
 
     chunk.disassemble("test chunk")
 }
