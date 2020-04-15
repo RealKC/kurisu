@@ -27,6 +27,7 @@ impl fmt::Display for OpCode {
 pub struct Chunk {
     code: Vec<u8>,
     constants: Vec<Value>,
+    lines: Vec<u32>,
 }
 
 impl Chunk {
@@ -34,11 +35,13 @@ impl Chunk {
         Chunk {
             code: Vec::new(),
             constants: Vec::new(),
+            lines: Vec::new(),
         }
     }
 
-    pub fn append(&mut self, byte: u8) {
+    pub fn append(&mut self, byte: u8, line: u32) {
         self.code.push(byte);
+        self.lines.push(line);
     }
 
     pub fn add_constant(&mut self, val: Value) -> u8 {
@@ -57,6 +60,12 @@ impl Chunk {
 
     fn dissassemble_instruction(&self, offset: usize) -> usize {
         print!("{:04} ", offset);
+
+        if offset > 0 && self.lines[offset] == self.lines[offset - 1] {
+            print!("   | ")
+        } else {
+            print!("{:04} ", self.lines[offset])
+        }
 
         let op: OpCode = self.code[offset].into();
         match op {
