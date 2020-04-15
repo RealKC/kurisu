@@ -1,3 +1,9 @@
+mod chunk;
+
+use chunk::{Chunk, OpCode};
+
 fn main() {
-    println!("Hello, it is me, the yet to be implemented kurisu interpreter");
+    let mut chunk = Chunk::new();
+    chunk.append_op(OpCode::Return);
+    chunk.disassemble("test chunk")
 }
