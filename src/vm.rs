@@ -71,6 +71,26 @@ impl VM {
                     let val = self.pop();
                     self.push(-val);
                 }
+                OpCode::Add => {
+                    let b = self.pop();
+                    let a = self.pop();
+                    self.push(a + b);
+                }
+                OpCode::Subtract => {
+                    let b = self.pop();
+                    let a = self.pop();
+                    self.push(a - b);
+                }
+                OpCode::Multiply => {
+                    let b = self.pop();
+                    let a = self.pop();
+                    self.push(a * b);
+                }
+                OpCode::Divide => {
+                    let b = self.pop();
+                    let a = self.pop();
+                    self.push(a / b);
+                }
                 _ => return Err(VMError::Compile),
             }
         }
