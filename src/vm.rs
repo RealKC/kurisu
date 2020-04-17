@@ -67,6 +67,10 @@ impl VM {
                     let val = self.chunk.get_constant(&mut self.ip, true);
                     self.push(val);
                 }
+                OpCode::Negate => {
+                    let val = self.pop();
+                    self.push(-val);
+                }
                 _ => return Err(VMError::Compile),
             }
         }

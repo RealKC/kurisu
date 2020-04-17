@@ -11,6 +11,7 @@ fn main() {
     let mut chunk = Chunk::new();
 
     chunk.append_constant(1.0, 69);
+    chunk.append(OpCode::Negate as u8, 666);
     chunk.append(OpCode::Return as u8, 420);
 
     chunk.disassemble("test chunk");

@@ -91,6 +91,7 @@ impl Chunk {
             OpCode::Return => Self::simple_instruction(op, offset),
             OpCode::Constant => self.constant_instruction(op, offset, false),
             OpCode::ConstantLong => self.constant_instruction(op, offset, true),
+            OpCode::Negate => Self::simple_instruction(op, offset),
         }
     }
 

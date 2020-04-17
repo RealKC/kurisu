@@ -6,6 +6,7 @@ pub enum OpCode {
     Return = 1,
     Constant = 2,
     ConstantLong = 3,
+    Negate,
 }
 
 impl From<u8> for OpCode {
@@ -14,6 +15,7 @@ impl From<u8> for OpCode {
             0x1 => Self::Return,
             0x2 => Self::Constant,
             0x3 => Self::ConstantLong,
+            0x4 => Self::Negate,
             _ => Self::Unknown,
         }
     }
