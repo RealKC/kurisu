@@ -3,31 +3,63 @@ mod opcode;
 mod value;
 mod vm;
 
-use chunk::Chunk;
-use opcode::OpCode;
+use std::env;
+use std::fs;
+use std::io::{self, BufRead};
+use std::process;
+use vm::VMError;
 use vm::VM;
 
 fn main() {
-    let mut chunk = Chunk::new();
+    let args: Vec<String> = env::args().collect();
+    if args.len() == 1 {
+        repl();
+    } else if args.len() == 2 {
+        run_file(&args[1].as_ref());
+    } else {
+        println!("Usage: kurisu [path]");
+        process::exit(1);
+    }
+}
 
-    chunk.append_constant(1.0, 69);
-    chunk.append(OpCode::Negate as u8, 666);
-    chunk.append_constant(2.0, 69);
-    chunk.append(OpCode::Add as u8, 666);
-    chunk.append_constant(5., 5858);
-    chunk.append(OpCode::Subtract as u8, 55);
-    chunk.append_constant(3., 55);
-    chunk.append(OpCode::Multiply as u8, 55);
-    chunk.append_constant(6., 55);
-    chunk.append(OpCode::Divide as u8, 55);
-
-    chunk.append(OpCode::Return as u8, 420);
-
-    chunk.disassemble("test chunk");
-
+fn repl() {
     let mut vm = VM::new();
-    match vm.interpret(chunk) {
-        Ok(()) => println!("All is well"),
-        Err(e) => println!("May the Gods offer pity, because rustc won't: {}", e),
+    let stdin = io::stdin();
+    loop {
+        print!("> ");
+        let mut line = String::new();
+        stdin
+            .lock()
+            .read_line(&mut line)
+            .expect("Could not read a line from stdin");
+        match vm.interpret(line.as_ref()) {
+            Ok(()) => (),
+            Err(e) => {
+                println!(
+                    "Error in line \n\t{}\n{}",
+                    line,
+                    match e {
+                        VMError::Runtime => "A runtime error occured",
+                        VMError::Compile => "An error related to compiling your code occured",
+                    }
+                );
+            }
+        }
+    }
+}
+
+fn run_file(file: &str) {
+    fn interpret(file: &str) -> Result<(), VMError> {
+        let mut vm = VM::new();
+        let contents =
+            fs::read_to_string(file).expect(format!("Could not open file {}\n", file).as_ref());
+        vm.interpret(contents.as_ref())
+    }
+    match interpret(file) {
+        Ok(()) => (),
+        Err(e) => {
+            println!("Error running your file {}", e);
+            process::exit(3);
+        }
     }
 }

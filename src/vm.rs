@@ -32,8 +32,7 @@ impl VM {
         }
     }
 
-    pub fn interpret(&mut self, chunk: Chunk) -> Result<(), VMError> {
-        self.chunk = chunk;
+    pub fn interpret(&mut self, source: &str) -> Result<(), VMError> {
         self.ip = 0; // ?
         self.run()
     }
