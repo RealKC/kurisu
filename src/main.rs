@@ -1,11 +1,13 @@
 mod chunk;
+mod compiler;
 mod opcode;
+mod scanner;
 mod value;
 mod vm;
 
 use std::env;
 use std::fs;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Write};
 use std::process;
 use vm::VMError;
 use vm::VM;
@@ -27,6 +29,7 @@ fn repl() {
     let stdin = io::stdin();
     loop {
         print!("> ");
+        io::stdout().flush().ok().expect("Could not flush stdout");
         let mut line = String::new();
         stdin
             .lock()
