@@ -1,4 +1,5 @@
 use crate::chunk::Chunk;
+use crate::compiler;
 use crate::opcode::OpCode;
 use crate::value::Value;
 use std::fmt;
@@ -33,8 +34,8 @@ impl VM {
     }
 
     pub fn interpret(&mut self, source: &str) -> Result<(), VMError> {
-        self.ip = 0; // ?
-        self.run()
+        compiler::compile(source);
+        Ok(())
     }
 
     fn run(&mut self) -> Result<(), VMError> {
