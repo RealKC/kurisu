@@ -194,7 +194,7 @@ impl<'a> Scanner<'a> {
         self.start == self.source.len()
     }
 
-    fn advance(&mut self) -> char {
+    pub fn advance(&mut self) -> char {
         self.current += 1;
         self.source[self.current - 1..].chars().next().unwrap()
     }
@@ -249,7 +249,8 @@ impl<'a> Scanner<'a> {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
+#[repr(u8)]
 pub enum TokenType {
     // Single-character tokens
     LeftParen,
@@ -260,8 +261,8 @@ pub enum TokenType {
     Dot,
     Minus,
     Plus,
-    Slash,
     Semicolon,
+    Slash,
     Star,
 
     // One- or two- character tokens
@@ -299,12 +300,24 @@ pub enum TokenType {
 
     Error,
     Eof,
+    DefaultConstructed,
 }
 
+#[derive(Clone)]
 pub struct Token {
     pub type_: TokenType,
-    name: String,
+    pub name: String,
     pub line: usize,
+}
+
+impl Token {
+    pub fn new() -> Self {
+        Token {
+            type_: TokenType::DefaultConstructed,
+            name: "Default constructed Token".to_string(),
+            line: 0,
+        }
+    }
 }
 
 impl fmt::Display for Token {
