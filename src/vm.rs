@@ -34,8 +34,14 @@ impl VM {
     }
 
     pub fn interpret(&mut self, source: &str) -> Result<(), VMError> {
-        compiler::compile(source);
-        Ok(())
+        match compiler::compile(source) {
+            Some(chunk) => {
+                self.chunk = chunk;
+                self.ip = 0;
+                self.run()
+            }
+            None => Err(VMError::Compile),
+        }
     }
 
     fn run(&mut self) -> Result<(), VMError> {
