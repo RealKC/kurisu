@@ -1,5 +1,6 @@
 use crate::chunk::Chunk;
 use crate::compiler;
+use crate::object::Object;
 use crate::opcode::OpCode;
 use crate::value::Value;
 use std::fmt;
@@ -90,17 +91,22 @@ impl VM {
                     let val = self.pop().is_falsey();
                     self.push(Value::Boolean(val))
                 }
-                OpCode::Add => match (self.peek(0), self.peek(1)) {
-                    (Value::Number(_), Value::Number(_)) => {
+                OpCode::Add => {
+                    let b = self.peek(0);
+                    let a = self.peek(1);
+
+                    if a.is_string() && b.is_string() {
+                        let b = self.pop();
+                        let a = self.pop();
+                        let new = format!("{}{}", a.as_string(), b.as_string());
+                        self.push(Value::Obj(Box::new(Object::String(new))));
+                    } else if a.is_number() && b.is_number() {
                         let b = self.pop().to_number();
                         let a = self.pop().to_number();
                         self.push(Value::Number(a + b));
+                    } else {
                     }
-                    _ => {
-                        self.runtime_error("Operands must be numbers");
-                        return Err(VMError::Runtime);
-                    }
-                },
+                }
                 OpCode::Subtract => match (self.peek(0), self.peek(1)) {
                     (Value::Number(_), Value::Number(_)) => {
                         let b = self.pop().to_number();

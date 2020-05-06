@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use crate::chunk::Chunk;
+use crate::object::Object;
 use crate::opcode::OpCode;
 use crate::scanner::{Scanner, Token, TokenType};
 use crate::value::Value;
@@ -87,6 +88,12 @@ fn literal(parser: &mut Parser) {
         TokenType::Nil => parser.emit_byte(OpCode::Nil as u8),
         _ => (), // unreachable
     }
+}
+
+fn string(parser: &mut Parser) {
+    parser.emit_constant(Value::Obj(Box::new(Object::String(
+        parser.previous.name[1..parser.previous.name.len() - 1].to_string(),
+    ))));
 }
 
 fn grouping(parser: &mut Parser) {
@@ -258,7 +265,7 @@ static RULES: [ParseRule; 41] = [
     },
     ParseRule {
         // TokenType::String
-        prefix: None,
+        prefix: Some(string),
         infix: None,
         precedence: Precedence::None,
     },
