@@ -4,6 +4,9 @@ use crate::opcode::OpCode;
 use crate::value::Value;
 use std::fmt;
 
+const DEBUG_SHOW_DISASSEMBLY: bool = false;
+const DEBUG_SHOW_STACK: bool = true;
+
 #[derive(Debug)]
 pub enum VMError {
     Compile,
@@ -50,13 +53,14 @@ impl VM {
                 return Ok(());
             }
 
-            #[cfg(debug_assertions)]
-            {
-                print!("          ");
+            if DEBUG_SHOW_STACK {
                 for val in &self.stack {
-                    print!("[{}]", val);
+                    print!("[{:?}]", val);
                 }
                 println!("");
+            }
+            if DEBUG_SHOW_DISASSEMBLY {
+                print!("          ");
                 self.chunk.dissassemble_instruction(self.ip);
             }
 
@@ -73,30 +77,91 @@ impl VM {
                     let val = self.chunk.get_constant(&mut self.ip, true);
                     self.push(val);
                 }
-                OpCode::Negate => {
-                    let val = self.pop();
-                    self.push(-val);
+                OpCode::Nil => self.push(Value::Nil),
+                OpCode::True => self.push(Value::Boolean(true)),
+                OpCode::False => self.push(Value::Boolean(false)),
+                OpCode::Negate => match self.peek(0) {
+                    Value::Number(num) => self.push(Value::Number(-num)),
+                    _ => {
+                        self.runtime_error("Operand must be a number");
+                        return Err(VMError::Runtime);
+                    }
+                },
+                OpCode::Not => {
+                    let val = self.pop().is_falsey();
+                    self.push(Value::Boolean(val))
                 }
-                OpCode::Add => {
+                OpCode::Add => match (self.peek(0), self.peek(1)) {
+                    (Value::Number(b), Value::Number(a)) => {
+                        let _ = self.pop();
+                        let _ = self.pop();
+                        self.push(Value::Number(a + b));
+                    }
+                    _ => {
+                        self.runtime_error("Operands must be numbers");
+                        return Err(VMError::Runtime);
+                    }
+                },
+                OpCode::Subtract => match (self.peek(0), self.peek(1)) {
+                    (Value::Number(b), Value::Number(a)) => {
+                        let _ = self.pop();
+                        let _ = self.pop();
+                        self.push(Value::Number(a - b));
+                    }
+                    _ => {
+                        self.runtime_error("Operands must be numbers");
+                        return Err(VMError::Runtime);
+                    }
+                },
+                OpCode::Multiply => match (self.peek(0), self.peek(1)) {
+                    (Value::Number(b), Value::Number(a)) => {
+                        let _ = self.pop();
+                        let _ = self.pop();
+                        self.push(Value::Number(a * b));
+                    }
+                    _ => {
+                        self.runtime_error("Operands must be numbers");
+                        return Err(VMError::Runtime);
+                    }
+                },
+                OpCode::Divide => match (self.peek(0), self.peek(1)) {
+                    (Value::Number(b), Value::Number(a)) => {
+                        let _ = self.pop();
+                        let _ = self.pop();
+                        self.push(Value::Number(a / b));
+                    }
+                    _ => {
+                        self.runtime_error("Operands must be numbers");
+                        return Err(VMError::Runtime);
+                    }
+                },
+                OpCode::Equal => {
                     let b = self.pop();
                     let a = self.pop();
-                    self.push(a + b);
+                    self.push(Value::Boolean(a == b));
                 }
-                OpCode::Subtract => {
-                    let b = self.pop();
-                    let a = self.pop();
-                    self.push(a - b);
-                }
-                OpCode::Multiply => {
-                    let b = self.pop();
-                    let a = self.pop();
-                    self.push(a * b);
-                }
-                OpCode::Divide => {
-                    let b = self.pop();
-                    let a = self.pop();
-                    self.push(a / b);
-                }
+                OpCode::Greater => match (self.peek(0), self.peek(1)) {
+                    (Value::Number(b), Value::Number(a)) => {
+                        let _ = self.pop();
+                        let _ = self.pop();
+                        self.push(Value::Boolean(a > b));
+                    }
+                    _ => {
+                        self.runtime_error("Operands must be numbers");
+                        return Err(VMError::Runtime);
+                    }
+                },
+                OpCode::Less => match (self.peek(0), self.peek(1)) {
+                    (Value::Number(b), Value::Number(a)) => {
+                        let _ = self.pop();
+                        let _ = self.pop();
+                        self.push(Value::Boolean(a < b));
+                    }
+                    _ => {
+                        self.runtime_error("Operands must be numbers");
+                        return Err(VMError::Runtime);
+                    }
+                },
                 _ => return Err(VMError::Compile),
             }
         }
@@ -108,5 +173,17 @@ impl VM {
 
     fn pop(&mut self) -> Value {
         self.stack.pop().unwrap()
+    }
+
+    fn peek(&self, distance: usize) -> Value {
+        self.stack[self.stack.len() - 1 - distance]
+    }
+
+    fn runtime_error(&mut self, msg: &str) {
+        eprintln!("{}", msg);
+
+        let instruction = self.ip;
+        let line = self.chunk.lines[instruction];
+        eprintln!("[line {}] in script", line);
     }
 }
