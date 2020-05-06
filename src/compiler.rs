@@ -76,8 +76,17 @@ fn end_compiler(parser: &mut Parser) {
 }
 
 fn number(parser: &mut Parser) {
-    let value = parser.previous.name.parse::<Value>().unwrap();
-    parser.emit_constant(value);
+    let value = parser.previous.name.parse::<f64>().unwrap();
+    parser.emit_constant(Value::Number(value));
+}
+
+fn literal(parser: &mut Parser) {
+    match parser.previous.type_ {
+        TokenType::False => parser.emit_byte(OpCode::False as u8),
+        TokenType::True => parser.emit_byte(OpCode::True as u8),
+        TokenType::Nil => parser.emit_byte(OpCode::Nil as u8),
+        _ => (), // unreachable
+    }
 }
 
 fn grouping(parser: &mut Parser) {
@@ -92,6 +101,7 @@ fn unary(parser: &mut Parser) {
 
     match type_ {
         TokenType::Minus => parser.emit_byte(OpCode::Negate as u8),
+        TokenType::Bang => parser.emit_byte(OpCode::Not as u8),
         _ => (), // unreachable
     }
 }
@@ -107,6 +117,12 @@ fn binary(parser: &mut Parser) {
         TokenType::Minus => parser.emit_byte(OpCode::Subtract as u8),
         TokenType::Star => parser.emit_byte(OpCode::Multiply as u8),
         TokenType::Slash => parser.emit_byte(OpCode::Divide as u8),
+        TokenType::BangEqual => parser.emit_bytes(OpCode::Equal as u8, OpCode::Not as u8),
+        TokenType::EqualEqual => parser.emit_byte(OpCode::Equal as u8),
+        TokenType::Greater => parser.emit_byte(OpCode::Greater as u8),
+        TokenType::GreaterEqual => parser.emit_bytes(OpCode::Less as u8, OpCode::Not as u8),
+        TokenType::Less => parser.emit_byte(OpCode::Less as u8),
+        TokenType::LessEqual => parser.emit_bytes(OpCode::Greater as u8, OpCode::Not as u8),
         _ => (), // unreachable
     }
 }
@@ -188,15 +204,15 @@ static RULES: [ParseRule; 41] = [
     },
     ParseRule {
         // TokenType::Bang
-        prefix: None,
+        prefix: Some(unary),
         infix: None,
         precedence: Precedence::None,
     },
     ParseRule {
         // TokenType::BangEqual
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Equality,
     },
     ParseRule {
         // TokenType::Equal
@@ -207,32 +223,32 @@ static RULES: [ParseRule; 41] = [
     ParseRule {
         // TokenType::EqualEqual
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Equality,
     },
     ParseRule {
         // TokenType::Greater
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Comparison,
     },
     ParseRule {
         // TokenType::GreaterEqual
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Comparison,
     },
     ParseRule {
         // TokenType::Less
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Comparison,
     },
     ParseRule {
         // TokenType::LessEqual
         prefix: None,
-        infix: None,
-        precedence: Precedence::None,
+        infix: Some(binary),
+        precedence: Precedence::Comparison,
     },
     ParseRule {
         // TokenType::Identifier
@@ -272,7 +288,7 @@ static RULES: [ParseRule; 41] = [
     },
     ParseRule {
         // TokenType::False
-        prefix: None,
+        prefix: Some(literal),
         infix: None,
         precedence: Precedence::None,
     },
@@ -296,7 +312,7 @@ static RULES: [ParseRule; 41] = [
     },
     ParseRule {
         // TokenType::Nil
-        prefix: None,
+        prefix: Some(literal),
         infix: None,
         precedence: Precedence::None,
     },
@@ -332,7 +348,7 @@ static RULES: [ParseRule; 41] = [
     },
     ParseRule {
         // TokenType::True
-        prefix: None,
+        prefix: Some(literal),
         infix: None,
         precedence: Precedence::None,
     },
