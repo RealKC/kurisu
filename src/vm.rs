@@ -70,31 +70,30 @@ impl VM {
                     return Ok(());
                 }
                 OpCode::Constant => {
-                    let val = self.chunk.get_constant(&mut self.ip, false);
+                    let val = self.chunk.get_constant(&mut self.ip, false).clone();
                     self.push(val);
                 }
                 OpCode::ConstantLong => {
-                    let val = self.chunk.get_constant(&mut self.ip, true);
+                    let val = self.chunk.get_constant(&mut self.ip, true).clone();
                     self.push(val);
                 }
                 OpCode::Nil => self.push(Value::Nil),
                 OpCode::True => self.push(Value::Boolean(true)),
                 OpCode::False => self.push(Value::Boolean(false)),
-                OpCode::Negate => match self.peek(0) {
-                    Value::Number(num) => self.push(Value::Number(-num)),
-                    _ => {
-                        self.runtime_error("Operand must be a number");
-                        return Err(VMError::Runtime);
+                OpCode::Negate => {
+                    if self.peek(0).is_number() {
+                        let a = self.pop().to_number();
+                        self.push(Value::Number(-a))
                     }
-                },
+                }
                 OpCode::Not => {
                     let val = self.pop().is_falsey();
                     self.push(Value::Boolean(val))
                 }
                 OpCode::Add => match (self.peek(0), self.peek(1)) {
-                    (Value::Number(b), Value::Number(a)) => {
-                        let _ = self.pop();
-                        let _ = self.pop();
+                    (Value::Number(_), Value::Number(_)) => {
+                        let b = self.pop().to_number();
+                        let a = self.pop().to_number();
                         self.push(Value::Number(a + b));
                     }
                     _ => {
@@ -103,9 +102,9 @@ impl VM {
                     }
                 },
                 OpCode::Subtract => match (self.peek(0), self.peek(1)) {
-                    (Value::Number(b), Value::Number(a)) => {
-                        let _ = self.pop();
-                        let _ = self.pop();
+                    (Value::Number(_), Value::Number(_)) => {
+                        let b = self.pop().to_number();
+                        let a = self.pop().to_number();
                         self.push(Value::Number(a - b));
                     }
                     _ => {
@@ -114,9 +113,9 @@ impl VM {
                     }
                 },
                 OpCode::Multiply => match (self.peek(0), self.peek(1)) {
-                    (Value::Number(b), Value::Number(a)) => {
-                        let _ = self.pop();
-                        let _ = self.pop();
+                    (Value::Number(_), Value::Number(_)) => {
+                        let b = self.pop().to_number();
+                        let a = self.pop().to_number();
                         self.push(Value::Number(a * b));
                     }
                     _ => {
@@ -125,9 +124,9 @@ impl VM {
                     }
                 },
                 OpCode::Divide => match (self.peek(0), self.peek(1)) {
-                    (Value::Number(b), Value::Number(a)) => {
-                        let _ = self.pop();
-                        let _ = self.pop();
+                    (Value::Number(_), Value::Number(_)) => {
+                        let b = self.pop().to_number();
+                        let a = self.pop().to_number();
                         self.push(Value::Number(a / b));
                     }
                     _ => {
@@ -141,9 +140,9 @@ impl VM {
                     self.push(Value::Boolean(a == b));
                 }
                 OpCode::Greater => match (self.peek(0), self.peek(1)) {
-                    (Value::Number(b), Value::Number(a)) => {
-                        let _ = self.pop();
-                        let _ = self.pop();
+                    (Value::Number(_), Value::Number(_)) => {
+                        let b = self.pop();
+                        let a = self.pop();
                         self.push(Value::Boolean(a > b));
                     }
                     _ => {
@@ -152,9 +151,9 @@ impl VM {
                     }
                 },
                 OpCode::Less => match (self.peek(0), self.peek(1)) {
-                    (Value::Number(b), Value::Number(a)) => {
-                        let _ = self.pop();
-                        let _ = self.pop();
+                    (Value::Number(_), Value::Number(_)) => {
+                        let b = self.pop();
+                        let a = self.pop();
                         self.push(Value::Boolean(a < b));
                     }
                     _ => {
@@ -175,8 +174,8 @@ impl VM {
         self.stack.pop().unwrap()
     }
 
-    fn peek(&self, distance: usize) -> Value {
-        self.stack[self.stack.len() - 1 - distance]
+    fn peek(&self, distance: usize) -> &Value {
+        &self.stack[self.stack.len() - 1 - distance]
     }
 
     fn runtime_error(&mut self, msg: &str) {
