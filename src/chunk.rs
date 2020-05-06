@@ -45,7 +45,7 @@ impl Chunk {
         byte
     }
 
-    pub fn get_constant(&self, ip: &mut usize, is_long: bool) -> Value {
+    pub fn get_constant(&self, ip: &mut usize, is_long: bool) -> &Value {
         let idx = if is_long {
             let long_index = (self.code[*ip] as usize) << 24
                 | (self.code[*ip + 1] as usize) << 16
@@ -58,7 +58,7 @@ impl Chunk {
             *ip += 1;
             short_index
         };
-        self.constants[idx]
+        &self.constants[idx]
     }
 
     pub fn len(&self) -> usize {
