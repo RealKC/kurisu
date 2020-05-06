@@ -5,7 +5,7 @@ use crate::value::Value;
 pub struct Chunk {
     code: Vec<u8>,
     constants: Vec<Value>,
-    lines: Vec<u32>,
+    pub lines: Vec<u32>,
 }
 
 impl Chunk {
@@ -92,11 +92,18 @@ impl Chunk {
             OpCode::Return => Self::simple_instruction(op, offset),
             OpCode::Constant => self.constant_instruction(op, offset, false),
             OpCode::ConstantLong => self.constant_instruction(op, offset, true),
+            OpCode::Nil => Self::simple_instruction(op, offset),
+            OpCode::True => Self::simple_instruction(op, offset),
+            OpCode::False => Self::simple_instruction(op, offset),
             OpCode::Negate => Self::simple_instruction(op, offset),
+            OpCode::Not => Self::simple_instruction(op, offset),
             OpCode::Add => Self::simple_instruction(op, offset),
             OpCode::Subtract => Self::simple_instruction(op, offset),
             OpCode::Multiply => Self::simple_instruction(op, offset),
             OpCode::Divide => Self::simple_instruction(op, offset),
+            OpCode::Equal => Self::simple_instruction(op, offset),
+            OpCode::Less => Self::simple_instruction(op, offset),
+            OpCode::Greater => Self::simple_instruction(op, offset),
         }
     }
 

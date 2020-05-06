@@ -3,27 +3,41 @@ use std::fmt;
 #[derive(Debug)]
 pub enum OpCode {
     Unknown = 0,
-    Return = 1,
-    Constant = 2,
-    ConstantLong = 3,
+    Return,
+    Constant,
+    ConstantLong,
+    Nil,
+    True,
+    False,
     Negate,
+    Not,
     Add,
     Subtract,
     Multiply,
     Divide,
+    Equal,
+    Greater,
+    Less,
 }
 
 impl From<u8> for OpCode {
     fn from(orig: u8) -> Self {
         match orig {
-            0x1 => Self::Return,
-            0x2 => Self::Constant,
-            0x3 => Self::ConstantLong,
-            0x4 => Self::Negate,
-            0x5 => Self::Add,
-            0x6 => Self::Subtract,
-            0x7 => Self::Multiply,
-            0x8 => Self::Divide,
+            1 => Self::Return,
+            2 => Self::Constant,
+            3 => Self::ConstantLong,
+            4 => Self::Nil,
+            5 => Self::True,
+            6 => Self::False,
+            7 => Self::Negate,
+            8 => Self::Not,
+            9 => Self::Add,
+            10 => Self::Subtract,
+            11 => Self::Multiply,
+            12 => Self::Divide,
+            13 => Self::Equal,
+            14 => Self::Greater,
+            15 => Self::Less,
             _ => Self::Unknown,
         }
     }
