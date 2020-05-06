@@ -1,18 +1,35 @@
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+use crate::object::Object;
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Value {
+    Nil,
     Boolean(bool),
     Number(f64),
-    Nil,
+    Obj(Box<Object>),
 }
 
 impl Value {
     pub fn is_falsey(&self) -> bool {
         match self {
-            Value::Boolean(b) => !b,
-            Value::Nil => true,
+            Self::Boolean(b) => !b,
+            Self::Nil => true,
             _ => false,
+        }
+    }
+
+    pub fn is_number(&self) -> bool {
+        match self {
+            Self::Number(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn to_number(&self) -> f64 {
+        match self {
+            Self::Number(n) => *n,
+            _ => panic!("self was not a number"),
         }
     }
 }
@@ -23,6 +40,7 @@ impl fmt::Display for Value {
             Value::Boolean(b) => write!(f, "{}", b),
             Value::Number(n) => write!(f, "{}", n),
             Value::Nil => write!(f, "nil"),
+            Value::Obj(_) => todo!(),
         }
     }
 }
